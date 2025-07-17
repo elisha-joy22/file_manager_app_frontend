@@ -250,3 +250,15 @@ h2 {
   color: #333;
   align-self: flex-start;
 }
+
+.filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+}

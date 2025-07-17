@@ -14,8 +14,13 @@ const Dashboard: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [search, setSearch] = useState('');
-  
+  const [searchResults, setSearchResults] = useState<UserFile[]>([]);  
+  const [searchPage, setSearchPage] = useState(1);
+  const [searchTotalPages, setSearchTotalPages] = useState(1);
   const [profile, setProfile] = useState<{ username: string } | null>(null);
+  const [fileType,setFileType] = useState('')
+  const [uploadedBefore,setUploadedBefore] = useState('')
+  const [uplaodedAfter,setUploadedAfter] = useState('')
   const navigate = useNavigate();
 
 
@@ -130,11 +135,49 @@ const Dashboard: React.FC = () => {
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   };
+  const handleFileTypeChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setFileType(e.target.value);
+  };
+  const handleUploadedBeforeChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setUploadedBefore(e.target.value);
+  };
+  const handleUploadedAfterChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setUploadedAfter(e.target.value);
+  };
 
-  const handleSearchSubmit = (e: FormEvent) => {
+
+  const fetchSearchResults = async (pageNumber: number) => {
+    try {
+      const res = await fetch(`http://localhost:8002/api/files/list/?filename=${search}&file_type=${fileType}&uploaded_before=${uploadedBefore}&uploaded_after=${uplaodedAfter}&page=${pageNumber}`, {
+        credentials: 'include',
+      });
+
+      if (!res.ok) throw new Error('Search failed');
+
+      const data = await res.json();
+      setSearchResults(data.results || data);
+      setSearchPage(pageNumber);
+      setSearchTotalPages(data.total_pages || data.totalPages || 1);
+    } catch (err) {
+      console.error('Search fetch failed:', err);
+      setSearchResults([]);
+    }
+  };
+
+
+
+  const handleSearchSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setPage(1);
-    fetchFiles(1);
+    if (
+      !search.trim() &&
+      !fileType.trim() &&
+      !uploadedBefore.trim() &&
+      !uplaodedAfter.trim()
+    ) {
+      return;
+}
+
+fetchSearchResults(1); // Start from page 1
   };
 
   const handleLogout = () => {
@@ -144,6 +187,13 @@ const Dashboard: React.FC = () => {
     }).then(() => {
       navigate('/login');
     });
+  };
+
+  const clearSearch = () => {
+    setSearch('');
+    setSearchResults([]);
+    setSearchPage(1);
+    fetchFiles(1);
   };
 
   return (
@@ -159,6 +209,7 @@ const Dashboard: React.FC = () => {
       </div>
       <div className='mid-container'>
       <form className="top-bar" onSubmit={handleUpload}>
+        <p>Upload your files.(max size:10mb)</p>
         <div className='upload-section'>
           <input type="file" onChange={handleFileChange} />
           <button type="submit" disabled={!selectedFile || uploading}>
@@ -176,33 +227,73 @@ const Dashboard: React.FC = () => {
             Search
           </button>
         </div>
+        <div className='filters'>
+          <input
+          type="text"
+          placeholder="File type"
+          value={fileType}
+          onChange={handleFileTypeChange}        
+          />
+          <div className="filter-group">
+              <label htmlFor="uploadedBefore">Uploaded Before</label>
+              <input
+                id="uploadedBefore"
+                type="date"
+                value={uploadedBefore}
+                onChange={handleUploadedBeforeChange}
+              />
+            </div>
 
-        <select className="filter">
-          <option value="">Filter</option>
-          <option value="pdf">PDF</option>
-          <option value="image">Images</option>
-          <option value="doc">Documents</option>
-        </select>
+            <div className="filter-group">
+              <label htmlFor="uploadedAfter">Uploaded After</label>
+              <input
+                id="uploadedAfter"
+                type="date"
+                value={uplaodedAfter}
+                onChange={handleUploadedAfterChange}
+              />
+            </div>
+
+        </div>
       </form>
       </div>
-      <div className="body-container">
-        <h3 className="section-heading">My Files</h3>
+<div className="body-container">
+  <div className="section-header">
+    {searchResults.length > 0 && (
+      <button onClick={clearSearch} className="back-button">
+        ← Ba  ck to My Files
+      </button>
+    )}
+    <h3 className="section-heading">
+      {searchResults.length > 0 ? 'Search Results' : 'My Files'}
+    </h3>
+  </div>
 
-        <FileList
-          files={files}
-          loading={loading}
-          error={error}
-          onDelete={handleDelete}
-        />
+  <FileList
+    files={searchResults.length > 0 ? searchResults : files}
+    loading={loading}
+    error={error}
+    onDelete={handleDelete}
+  />
 
-        {!loading && !error && files.length > 0 && (
-          <div className="pagination">
-            <button disabled={page === 1} onClick={() => setPage(prev => prev - 1)}>Prev</button>
-            <span>Page {page} of {totalPages}</span>
-            <button disabled={page === totalPages} onClick={() => setPage(prev => prev + 1)}>Next</button>
-          </div>
-        )}
-      </div>
+  {!loading && !error && (
+    <div className="pagination">
+      {searchResults.length > 0 ? (
+        <>
+          <button disabled={searchPage === 1} onClick={() => fetchSearchResults(searchPage - 1)}>Prev</button>
+          <span>Page {searchPage} of {searchTotalPages}</span>
+          <button disabled={searchPage === searchTotalPages} onClick={() => fetchSearchResults(searchPage + 1)}>Next</button>
+        </>
+      ) : (
+        <>
+          <button disabled={page === 1} onClick={() => setPage(prev => prev - 1)}>Prev</button>
+          <span>Page {page} of {totalPages}</span>
+          <button disabled={page === totalPages} onClick={() => setPage(prev => prev + 1)}>Next</button>
+        </>
+      )}
+    </div>
+  )}
+</div>
     </div>
   );
 };
