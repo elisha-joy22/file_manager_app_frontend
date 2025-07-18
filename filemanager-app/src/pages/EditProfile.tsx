@@ -12,7 +12,7 @@ const EditProfile: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8002/api/auth/profile/', {
+    fetch('http://127.0.0.1:8000/api/auth/profile/', {
       credentials: 'include',
     })
       .then(res => res.json())
@@ -37,7 +37,7 @@ const EditProfile: React.FC = () => {
     if (!confirmed) return;
 
     try {
-      const res = await fetch('http://127.0.0.1:8002/api/auth/profile/', {
+      const res = await fetch('http://127.0.0.1:8000/api/auth/profile/', {
         method: 'PUT',
         credentials: 'include',
         headers: {

@@ -30,7 +30,7 @@ const Dashboard: React.FC = () => {
   console.log(profile)
   const fetchProfile = async () => {
     try {
-      const res = await fetch('http://localhost:8002/api/auth/profile/', {
+      const res = await fetch('http://localhost:8000/api/auth/profile/', {
         credentials: 'include',
       });
 
@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
 
   const fetchFiles = (pageNumber: number) => {
     setLoading(true);
-    fetch(`http://localhost:8002/api/files/list/?page=${pageNumber}`, {
+    fetch(`http://localhost:8000/api/files/list/?page=${pageNumber}`, {
       credentials: 'include',
     })
       .then(res => {
@@ -86,7 +86,7 @@ const Dashboard: React.FC = () => {
   const handleDelete = (id: number) => {
     if (!window.confirm('Are you sure you want to delete this file?')) return;
 
-    fetch(`http://localhost:8002/api/files/${id}/`, {
+    fetch(`http://localhost:8000/api/files/${id}/`, {
       method: 'DELETE',
       credentials: 'include',
     })
@@ -112,7 +112,7 @@ const Dashboard: React.FC = () => {
     formData.append('file', selectedFile);
 
     setUploading(true);
-    fetch('http://localhost:8002/api/files/upload/', {
+    fetch('http://localhost:8000/api/files/upload/', {
       method: 'POST',
       body: formData,
       credentials: 'include',
@@ -148,7 +148,7 @@ const Dashboard: React.FC = () => {
 
   const fetchSearchResults = async (pageNumber: number) => {
     try {
-      const res = await fetch(`http://localhost:8002/api/files/list/?filename=${search}&file_type=${fileType}&uploaded_before=${uploadedBefore}&uploaded_after=${uplaodedAfter}&page=${pageNumber}`, {
+      const res = await fetch(`http://localhost:8000/api/files/list/?filename=${search}&file_type=${fileType}&uploaded_before=${uploadedBefore}&uploaded_after=${uplaodedAfter}&page=${pageNumber}`, {
         credentials: 'include',
       });
 
@@ -181,7 +181,7 @@ fetchSearchResults(1); // Start from page 1
   };
 
   const handleLogout = () => {
-    fetch('http://localhost:8002/api/logout/', {
+    fetch('http://localhost:8000/api/logout/', {
       method: 'POST',
       credentials: 'include',
     }).then(() => {
